@@ -20,6 +20,7 @@ public class NPC : MonoBehaviour
 
     public PathFinding pathFinding; // Sistema de PathFinding
     public Vector3 Position => transform.position;
+    private bool isReversing = false;
 
     void Start()
     {
@@ -116,18 +117,43 @@ private void Patrol()
     // Comprobar si hay waypoints definidos
     if (waypoints == null || waypoints.Length == 0) return;
 
-    // Obtener el waypoint objetivo actual
-    Transform targetWaypoint = waypoints[currentWaypointIndex].transform;
+    // Obtener el nodo actual
+    Node currentWaypoint = waypoints[currentWaypointIndex];
 
-    // Calcular la dirección y mover el NPC hacia el waypoint
-    Vector3 direction = (targetWaypoint.position - transform.position).normalized;
+    // Mover el NPC hacia el nodo actual
+    Vector3 direction = (currentWaypoint.transform.position - transform.position).normalized;
     transform.position += direction * moveSpeed * Time.deltaTime;
 
-    // Verificar si el NPC ha alcanzado el waypoint
-    if (Vector3.Distance(transform.position, targetWaypoint.position) <= stoppingDistance)
+    // Verificar si el NPC alcanzó el waypoint
+    if (Vector3.Distance(transform.position, currentWaypoint.transform.position) <= stoppingDistance)
     {
-        // Cambiar al siguiente waypoint de forma cíclica
-        currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
+        // Decidir el próximo waypoint en base a los vecinos y dirección
+        if (!isReversing)
+        {
+            // Mover al siguiente vecino en orden
+            if (currentWaypointIndex < waypoints.Length - 1)
+            {
+                currentWaypointIndex++;
+            }
+            else
+            {
+                // Si llegó al final, cambiar dirección
+                isReversing = true;
+            }
+        }
+        else
+        {
+            // Mover al waypoint anterior en reversa
+            if (currentWaypointIndex > 0)
+            {
+                currentWaypointIndex--;
+            }
+            else
+            {
+                // Si llegó al inicio, cambiar dirección
+                isReversing = false;
+            }
+        }
     }
 }
 }
